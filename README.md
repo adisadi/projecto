@@ -37,9 +37,13 @@ my-project/
 ### What can Projecto do?
 
 `install` will install & build all packages, finally it links all local packages.
+
 `link` will link all local packages.
+
 `unlink` will unlink all local packages.
-`clean` will clean delete folders in all packages.
+
+`clean` will delete folders in all packages.
+
 `task` will execute package.json scripts in all packages.
 
 ## Getting Started
