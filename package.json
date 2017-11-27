@@ -18,7 +18,8 @@
   },
   "scripts": {
     "lint": "tslint --project .",
-    "build": "tsc"
+    "build": "tsc",
+    "prepublish": "yarn run build"
   },
   "dependencies": {
     "colors": "^1.1.2",
