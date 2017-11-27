@@ -9,11 +9,12 @@ export interface IPackage {
     scripts: any;
 }
 
-function getPackages(rootPath: string): Promise<IPackage[]> {
+function getPackages(rootPath: string, includeRoot: boolean): Promise<IPackage[]> {
     return iterate(".", (f, stat) => {
         if (stat.isDirectory()) {
             return !f.match("node_modules|.bin|.git");
         } else {
+            if (!includeRoot && path.join(path.resolve(rootPath), "package.json") === f) { return false; }
             return f.match("package.json") != null;
         }
     }).then((results: any) => {
@@ -55,8 +56,9 @@ function getPackages(rootPath: string): Promise<IPackage[]> {
     });
 }
 
-export function executeOnPackage(rootPath: string, fn: (p: IPackage, packages: IPackage[]) => void): Promise<void> {
-    return getPackages(rootPath).then((packages) => {
+export function executeOnPackage(
+    rootPath: string, includeRoot: boolean, fn: (p: IPackage, packages: IPackage[]) => void): Promise<void> {
+    return getPackages(rootPath, includeRoot).then((packages) => {
 
         const installedPackages: IPackage[] = [];
 

@@ -16,23 +16,11 @@ const argv = yargs.command({
                 alias: "b",
                 describe: "false or custom script name to run",
             },
-            exclude_packages: {
-                alias: "e",
-                array: true,
-                describe: "exclude these projects and their dependencies",
-            },
-            link: {
+            nolink: {
                 alias: "l",
+                boolean: true,
+                default: false,
                 describe: "link projects after install",
-            },
-            packages: {
-                alias: "p",
-                array: true,
-                describe: "only include these projects and their dependencies",
-            },
-            root: {
-                alias: "r",
-                describe: "provide a path to the root",
             },
         });
     },
@@ -43,7 +31,8 @@ const argv = yargs.command({
         install({
             build: a.build,
             exclude_packages: a.exclude_packages,
-            link: a.link,
+            include_root: a.include_root,
+            link: !a.nolink,
             packages: a.packages,
             root: a.root,
             // tslint:disable-next-line:no-console
@@ -54,34 +43,20 @@ const argv = yargs.command({
 }).command({
     aliases: ["t"],
     builder: (y) => {
-        y.option({
-            exclude_packages: {
-                alias: "e",
-                describe: "exclude these projects and their dependencies",
-            },
-            packages: {
-                alias: "p",
-                describe: "only include these projects and their dependencies",
-            },
-            root: {
-                alias: "r",
-                describe: "provide a path to the root",
-            },
-            task: {
-                alias: "t",
-                describe: "false or custom script name to run",
-            },
+        y.positional("targets", {
+            describe: "package.json script names",
         });
     },
-    command: "task [options]",
+    command: "task <targets...>",
     desc: "exexute script task over all packages",
     handler: (a) => {
         // tslint:disable-next-line:no-console
         task({
             exclude_packages: a.exclude_packages,
+            include_root: a.include_root,
             packages: a.packages,
             root: a.root,
-            task: a.task,
+            targets: a.targets,
             // tslint:disable-next-line:no-console
         }).then(writeDone)
             // tslint:disable-next-line:no-console
@@ -89,28 +64,14 @@ const argv = yargs.command({
     },
 }).command({
     aliases: ["ul"],
-    builder: (y) => {
-        y.option({
-            exclude_packages: {
-                alias: "e",
-                describe: "exclude these projects and their dependencies",
-            },
-            packages: {
-                alias: "p",
-                describe: "only include these projects and their dependencies",
-            },
-            root: {
-                alias: "r",
-                describe: "provide a path to the root",
-            },
-        });
-    },
+    builder: (y) => { return; },
     command: "unlink [options]",
     desc: "Unlink all local packages",
     handler: (a) => {
         // tslint:disable-next-line:no-console
         unlink({
             exclude_packages: a.exclude_packages,
+            include_root: a.include_root,
             packages: a.packages,
             root: a.root,
             // tslint:disable-next-line:no-console
@@ -120,28 +81,14 @@ const argv = yargs.command({
     },
 }).command({
     aliases: "l",
-    builder: (y) => {
-        y.option({
-            exclude_packages: {
-                alias: "e",
-                describe: "exclude these projects and their dependencies",
-            },
-            packages: {
-                alias: "p",
-                describe: "only include these projects and their dependencies",
-            },
-            root: {
-                alias: "r",
-                describe: "provide a path to the root",
-            },
-        });
-    },
+    builder: (y) => { return; },
     command: "link [options]",
     desc: "Link all local packages",
     handler: (a) => {
         // tslint:disable-next-line:no-console
         link({
             exclude_packages: a.exclude_packages,
+            include_root: a.include_root,
             packages: a.packages,
             root: a.root,
             // tslint:disable-next-line:no-console
@@ -152,35 +99,18 @@ const argv = yargs.command({
 }).command({
     aliases: "c",
     builder: (y) => {
-        y.option({
-            directories: {
-                alias: "d",
-                array: true,
-                describe: "array with directories to delete",
-            },
-            exclude_packages: {
-                alias: "e",
-                array: true,
-                describe: "exclude these projects and their dependencies",
-            },
-            packages: {
-                alias: "p",
-                array: true,
-                describe: "only include these projects and their dependencies",
-            },
-            root: {
-                alias: "r",
-                describe: "provide a path to the root",
-            },
+        y.positional("directories", {
+            describe: "directories to delete relativ to package root",
         });
     },
-    command: "clean [options]",
+    command: "clean [directories...]",
     desc: "Clean Packages (node_modules | dist)",
     handler: (a) => {
         clean(
             {
                 directories: a.directories,
                 exclude_packages: a.exclude_packages,
+                include_root: a.include_root,
                 packages: a.packages,
                 root: a.root,
             },
@@ -188,6 +118,27 @@ const argv = yargs.command({
         ).then(writeDone)
             // tslint:disable-next-line:no-console
             .catch((err) => console.error(colors.red(err)));
+    },
+}).options({
+    exclude_packages: {
+        alias: "e",
+        array: true,
+        describe: "exclude these packages",
+    },
+    include_root: {
+        alias: "i",
+        boolean: true,
+        default: false,
+        describe: "include root packages",
+    },
+    packages: {
+        alias: "p",
+        array: true,
+        describe: "only include these packages",
+    },
+    root: {
+        alias: "r",
+        describe: "provide a path to the root",
     },
 })
     .demandCommand()

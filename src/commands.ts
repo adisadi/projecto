@@ -10,6 +10,7 @@ export function install(options:
         link: boolean,
         packages: string[],
         exclude_packages: string[],
+        include_root: boolean,
         root: string,
     },
 ): Promise<void> {
@@ -17,6 +18,7 @@ export function install(options:
     const defaultOptions = {
         build: "build",
         exclude_packages: [],
+        include_root: false,
         link: true,
         packages: [],
         root: process.cwd(),
@@ -38,7 +40,7 @@ export function install(options:
         console.log(colors.bold(colors.blue("Installing: " + p.name)));
         child_process.spawnSync("yarn", ["install", "--checkfiles"], { cwd: p.path, stdio: "inherit" });
 
-        if (hasDependencies(p, packages)) {
+        if (_hasDependencies(p, packages)) {
 
             if (options.build) {
                 const buildTarget = options.build instanceof Boolean ? "build" : options.build;
@@ -50,7 +52,7 @@ export function install(options:
         }
     };
 
-    return executeOnPackage(options.root, installAndBuildPackage).then(() => {
+    return executeOnPackage(options.root, options.include_root, installAndBuildPackage).then(() => {
         if (options.link) {
             return link(options);
         } else {
@@ -63,12 +65,14 @@ export function link(options:
     {
         packages: string[],
         exclude_packages: string[],
+        include_root: boolean,
         root: string,
     },
 ): Promise<void> {
 
     const defaultOptions = {
         exclude_packages: [],
+        include_root: false,
         packages: [],
         root: process.cwd(),
     };
@@ -76,7 +80,7 @@ export function link(options:
     options = _defaults(options, defaultOptions);
 
     const linkPackage = (p: IPackage, packages: IPackage[]) => {
-        if (hasDependencies(p, packages)) {
+        if (_hasDependencies(p, packages)) {
             if (options.packages.length > 0 && !options.packages.includes(p.name)) {
                 return;
             }
@@ -95,19 +99,21 @@ export function link(options:
         }
     };
 
-    return executeOnPackage(options.root, linkPackage);
+    return executeOnPackage(options.root, options.include_root, linkPackage);
 }
 
 export function unlink(options:
     {
         packages: string[],
         exclude_packages: string[],
+        include_root: boolean,
         root: string,
     },
 ): Promise<void> {
 
     const defaultOptions = {
         exclude_packages: [],
+        include_root: false,
         packages: [],
         root: process.cwd(),
     };
@@ -123,7 +129,7 @@ export function unlink(options:
             return;
         }
 
-        if (hasDependencies(p, packages)) {
+        if (_hasDependencies(p, packages)) {
             const deps = packages.filter((e) => e.dependencies.some((d) => d.name === p.name));
             deps.forEach((d) => {
                 child_process.spawnSync("yarn", ["unlink", p.name, "--silent"], { cwd: d.path, stdio: "inherit" });
@@ -136,25 +142,28 @@ export function unlink(options:
         }
     };
 
-    return executeOnPackage(options.root, unlinkPackage);
+    return executeOnPackage(options.root, options.include_root, unlinkPackage);
 }
 
 export function task(options:
     {
         packages: string[],
         exclude_packages: string[],
+        include_root: boolean,
         root: string,
-        task: string,
+        targets: string[],
     }): Promise<void> {
 
     const defaultOptions = {
         exclude_packages: [],
+        include_root: false,
         packages: [],
         root: process.cwd(),
-        task: "build",
+        targets: [],
     };
 
     options = _defaults(options, defaultOptions);
+    let target = "";
 
     const buildPackage = (p: IPackage, packages: IPackage[]) => {
         if (options.packages.length > 0 && !options.packages.includes(p.name)) {
@@ -165,17 +174,28 @@ export function task(options:
             return;
         }
 
-        if (p.scripts[options.task] === undefined) {
+        if (p.scripts[target] === undefined) {
             return;
         }
 
         // tslint:disable-next-line:no-console
-        console.log(colors.bold(colors.blue("Execute Task:" + options.task)));
-        child_process.spawnSync("yarn", ["run", options.task], { cwd: p.path, stdio: "inherit" });
+        console.log(colors.bold(colors.blue("Execute Task: " + target + " in " + p.name)));
+        child_process.spawnSync("yarn", ["run", target], { cwd: p.path, stdio: "inherit" });
 
     };
 
-    return executeOnPackage(options.root, buildPackage);
+    return new Promise((resolve, reject) => {
+        let index = 0;
+        function next() {
+            if (index < options.targets.length) {
+                target = options.targets[index++];
+                executeOnPackage(options.root, options.include_root, buildPackage).then(next, reject);
+            } else {
+                resolve();
+            }
+        }
+        next();
+    });
 }
 
 export function clean(options:
@@ -183,6 +203,7 @@ export function clean(options:
         root: string,
         packages: string[],
         exclude_packages: string[],
+        include_root: false,
         directories: string[],
     },
 ): Promise<void> {
@@ -190,6 +211,7 @@ export function clean(options:
     const defaultOptions = {
         directories: ["node_modules", "dist"],
         exclude_packages: [],
+        include_root: false,
         packages: [],
         root: process.cwd(),
     };
@@ -218,18 +240,18 @@ export function clean(options:
         }
     };
 
-    return executeOnPackage(options.root, cleanPackage);
+    return executeOnPackage(options.root, options.include_root, cleanPackage);
 }
 
-function hasDependencies(p: IPackage, packages: IPackage[]) {
+function _hasDependencies(p: IPackage, packages: IPackage[]) {
     return packages.some((e) => e.dependencies.some((d) => d.name === p.name));
 }
 
 function _defaults(options, defaultOptions) {
-    return Object.assign({}, defaultOptions, filterObject(options));
+    return Object.assign({}, defaultOptions, _filterObject(options));
 }
 
-function filterObject(obj) {
+function _filterObject(obj) {
     const ret = {};
     Object.keys(obj)
         .filter((key) => obj[key] !== undefined)
