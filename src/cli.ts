@@ -4,8 +4,11 @@ import * as yargs from "yargs";
 import { clean, install, link, task, unlink } from "./commands";
 
 const writeDone = () => {
-    // tslint:disable-next-line:no-console
-    console.log(colors.bold(colors.green("Done")));
+    console.log(colors.bold(colors.green("Projecto --> done!")));
+};
+
+const writeError = (err) => {
+    console.error(colors.bold(colors.red("Projecto -->" + err)));
 };
 
 const argv = yargs.command({
@@ -14,18 +17,19 @@ const argv = yargs.command({
         y.options({
             build: {
                 alias: "b",
-                describe: "false or custom script name to run",
+                default: "build",
+                describe: "Don't build (false) or custom script name to run",
             },
             nolink: {
                 alias: "l",
                 boolean: true,
                 default: false,
-                describe: "link projects after install",
+                describe: "Don't link local packages",
             },
         });
     },
     command: "install [options]",
-    desc: "Install and build all packages and link local packages",
+    desc: "Install all packages, build local packages with dependencies and link them",
     handler: (a) => {
 
         install({
@@ -35,77 +39,67 @@ const argv = yargs.command({
             link: !a.nolink,
             packages: a.packages,
             root: a.root,
-            // tslint:disable-next-line:no-console
         }).then(writeDone)
-            // tslint:disable-next-line:no-console
-            .catch((err) => console.error(colors.red(err)));
+            .catch(writeError);
     },
 }).command({
     aliases: ["t"],
     builder: (y) => {
         y.positional("targets", {
-            describe: "package.json script names",
+            default: [],
+            describe: "Package.json script names",
         });
     },
     command: "task <targets...>",
-    desc: "exexute script task over all packages",
+    desc: "Exexute script task over all packages",
     handler: (a) => {
-        // tslint:disable-next-line:no-console
         task({
             exclude_packages: a.exclude_packages,
             include_root: a.include_root,
             packages: a.packages,
             root: a.root,
             targets: a.targets,
-            // tslint:disable-next-line:no-console
         }).then(writeDone)
-            // tslint:disable-next-line:no-console
-            .catch((err) => console.error(colors.red(err)));
+            .catch(writeError);
     },
 }).command({
     aliases: ["ul"],
     builder: (y) => { return; },
-    command: "unlink [options]",
+    command: "unlink",
     desc: "Unlink all local packages",
     handler: (a) => {
-        // tslint:disable-next-line:no-console
         unlink({
             exclude_packages: a.exclude_packages,
             include_root: a.include_root,
             packages: a.packages,
             root: a.root,
-            // tslint:disable-next-line:no-console
         }).then(writeDone)
-            // tslint:disable-next-line:no-console
-            .catch((err) => console.error(colors.red(err)));
+            .catch(writeError);
     },
 }).command({
     aliases: "l",
     builder: (y) => { return; },
-    command: "link [options]",
+    command: "link",
     desc: "Link all local packages",
     handler: (a) => {
-        // tslint:disable-next-line:no-console
         link({
             exclude_packages: a.exclude_packages,
             include_root: a.include_root,
             packages: a.packages,
             root: a.root,
-            // tslint:disable-next-line:no-console
         }).then(writeDone)
-            // tslint:disable-next-line:no-console
-            .catch((err) => console.error(colors.red(err)));
+            .catch(writeError);
     },
 }).command({
     aliases: "c",
     builder: (y) => {
         y.positional("directories", {
             default: ["nodes_modules", "dist"],
-            describe: "directories to delete relativ to package root",
+            describe: "Directories to delete relativ to package root (glob)",
         });
     },
     command: "clean [directories...]",
-    desc: "Clean Packages (node_modules | dist)",
+    desc: "Delete directories",
     handler: (a) => {
         clean(
             {
@@ -115,31 +109,32 @@ const argv = yargs.command({
                 packages: a.packages,
                 root: a.root,
             },
-            // tslint:disable-next-line:no-console
         ).then(writeDone)
-            // tslint:disable-next-line:no-console
-            .catch((err) => console.error(colors.red(err)));
+            .catch(writeError);
     },
 }).options({
     exclude_packages: {
         alias: "e",
         array: true,
-        describe: "exclude these packages",
+        default: [],
+        describe: "Exclude these packages",
     },
     include_root: {
         alias: "i",
         boolean: true,
         default: false,
-        describe: "include root packages",
+        describe: "Include root packages",
     },
     packages: {
         alias: "p",
         array: true,
-        describe: "only include these packages",
+        default: [],
+        describe: "Only include these packages",
     },
     root: {
         alias: "r",
-        describe: "provide a path to the root",
+        default: process.cwd(),
+        describe: "Provide a path to the root",
     },
 })
     .demandCommand()

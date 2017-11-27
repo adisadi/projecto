@@ -36,8 +36,7 @@ export function install(options:
             return;
         }
 
-        // tslint:disable-next-line:no-console
-        console.log(colors.bold(colors.blue("Installing: " + p.name)));
+        _print(p.name + " --> installing");
         child_process.spawnSync("yarn", ["install", "--checkfiles"], { cwd: p.path, stdio: "inherit" });
 
         if (_hasDependencies(p, packages)) {
@@ -45,8 +44,8 @@ export function install(options:
             if (options.build) {
                 const buildTarget = options.build instanceof Boolean ? "build" : options.build;
                 if (p.scripts[buildTarget] === undefined) { return; }
-                // tslint:disable-next-line:no-console
-                console.log(colors.bold(colors.blue("Building: " + p.name)));
+
+                _print(p.name + " --> building");
                 child_process.spawnSync("yarn", ["run", buildTarget], { cwd: p.path, stdio: "inherit" });
             }
         }
@@ -89,9 +88,12 @@ export function link(options:
                 return;
             }
 
-            // tslint:disable-next-line:no-console
-            console.log(colors.bold(colors.blue("Linking:" + p.name)));
-            child_process.spawnSync("yarn", ["link", "--silent"], { cwd: p.path, stdio: "inherit" });
+            _print(p.name + " --> linking");
+            child_process.spawnSync(
+                "yarn",
+                ["link", "--silent"],
+                { cwd: p.path, stdio: [process.stdin, process.stdout, "ignore"] },
+            );
             const deps = packages.filter((e) => e.dependencies.some((d) => d.name === p.name));
             deps.forEach((d) => {
                 child_process.spawnSync("yarn", ["link", p.name, "--silent"], { cwd: d.path, stdio: "inherit" });
@@ -132,13 +134,24 @@ export function unlink(options:
         if (_hasDependencies(p, packages)) {
             const deps = packages.filter((e) => e.dependencies.some((d) => d.name === p.name));
             deps.forEach((d) => {
-                child_process.spawnSync("yarn", ["unlink", p.name, "--silent"], { cwd: d.path, stdio: "inherit" });
+                child_process.spawnSync(
+                    "yarn",
+                    ["unlink", p.name, "--silent"],
+                    {
+                        cwd: d.path, stdio: [process.stdin, process.stdout, "ignore"],
+                    });
                 child_process.spawnSync("yarn",
-                    ["install", "--checkfiles"], { cwd: p.path, stdio: "inherit" });
+                    ["install", "--checkfiles"],
+                    { cwd: p.path, stdio: [process.stdin, "ignore", process.stderr] },
+                );
             });
-            // tslint:disable-next-line:no-console
-            console.log(colors.bold(colors.blue("Unlinking:" + p.name)));
-            child_process.spawnSync("yarn", ["unlink", "--silent"], { cwd: p.path, stdio: "inherit" });
+
+            _print(p.name + " --> unlinking");
+            child_process.spawnSync(
+                "yarn",
+                ["unlink", "--silent"],
+                { cwd: p.path, stdio: [process.stdin, process.stdout, "ignore"] },
+            );
         }
     };
 
@@ -178,8 +191,7 @@ export function task(options:
             return;
         }
 
-        // tslint:disable-next-line:no-console
-        console.log(colors.bold(colors.blue("Execute Task: " + target + " in " + p.name)));
+        _print(p.name + " --> execute task '" + target + "'");
         child_process.spawnSync("yarn", ["run", target], { cwd: p.path, stdio: "inherit" });
 
     };
@@ -226,14 +238,12 @@ export function clean(options:
         if (options.exclude_packages.length > 0 && options.exclude_packages.includes(p.name)) {
             return;
         }
-        // tslint:disable-next-line:forin
+
         for (const r of options.directories) {
             const pathToDelete = path.join(p.path, r);
-            // tslint:disable-next-line:no-console
-            console.log(colors.bold(colors.blue("rimraf " + pathToDelete)));
+            _print("rimraf --> '" + pathToDelete + "'");
             rimraf(pathToDelete, (err) => {
                 if (err) {
-                    // tslint:disable-next-line:no-console
                     throw err;
                 }
             });
@@ -257,4 +267,8 @@ function _filterObject(obj) {
         .filter((key) => obj[key] !== undefined)
         .forEach((key) => ret[key] = obj[key]);
     return ret;
+}
+
+function _print(str: string) {
+    console.log(colors.bold(colors.blue(str)));
 }
