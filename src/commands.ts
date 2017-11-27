@@ -46,7 +46,7 @@ export function install(options:
                 const buildTarget = options.build instanceof Boolean ? "build" : options.build;
                 if (p.scripts[buildTarget] === undefined) { return; }
                 // tslint:disable-next-line:no-console
-                console.log(colors.bold(colors.blue("Building: ".cyan + p.name)));
+                console.log(colors.bold(colors.blue("Building: " + p.name)));
                 child_process.spawnSync("yarn", ["run", buildTarget, "--silent"], { cwd: p.path, stdio: "inherit" });
             }
         }

@@ -100,6 +100,7 @@ const argv = yargs.command({
     aliases: "c",
     builder: (y) => {
         y.positional("directories", {
+            default: ["nodes_modules", "dist"],
             describe: "directories to delete relativ to package root",
         });
     },
