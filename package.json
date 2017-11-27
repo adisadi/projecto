@@ -1,6 +1,6 @@
 {
   "name": "projecto",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "./dist/cli.js",
   "license": "MIT",
   "repository": {
@@ -30,5 +30,7 @@
     "projecto": "./dist/bin/projecto.js",
     "po": "./dist/bin/projecto.js"
   },
-  "files": ["dist"]
+  "files": [
+    "dist"
+  ]
 }
