@@ -1,6 +1,15 @@
 import * as fs from "fs";
 import * as path from "path";
 
+
+export function exists(dir: string): Promise<boolean> {
+    return new Promise<boolean>((resolve, reject) => {
+        fs.exists(dir, (res) => {
+            resolve(res);
+        });
+    });
+}
+
 function readdirAsync(dir: string): Promise<string[]> {
     return new Promise<string[]>((resolve, reject) => {
         fs.readdir(dir, (err: NodeJS.ErrnoException, list: string[]) => {

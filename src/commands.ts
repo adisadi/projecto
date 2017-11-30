@@ -26,7 +26,7 @@ export function install(options:
 
     options = _defaults(options, defaultOptions);
 
-    const installAndBuildPackage = (p: IPackage, packages: IPackage[]) => {
+    const installAndBuildPackage = (p: IPackage, packages: IPackage[], config: any) => {
 
         if (options.packages.length > 0 && !options.packages.includes(p.name)) {
             return;
@@ -78,7 +78,7 @@ export function link(options:
 
     options = _defaults(options, defaultOptions);
 
-    const linkPackage = (p: IPackage, packages: IPackage[]) => {
+    const linkPackage = (p: IPackage, packages: IPackage[], config: any) => {
         if (_hasDependencies(p, packages)) {
             if (options.packages.length > 0 && !options.packages.includes(p.name)) {
                 return;
@@ -122,7 +122,7 @@ export function unlink(options:
 
     options = _defaults(options, defaultOptions);
 
-    const unlinkPackage = (p: IPackage, packages: IPackage[]) => {
+    const unlinkPackage = (p: IPackage, packages: IPackage[], config: any) => {
         if (options.packages.length > 0 && !options.packages.includes(p.name)) {
             return;
         }
@@ -178,7 +178,7 @@ export function task(options:
     options = _defaults(options, defaultOptions);
     let target = "";
 
-    const buildPackage = (p: IPackage, packages: IPackage[]) => {
+    const buildPackage = (p: IPackage, packages: IPackage[], config: any) => {
         if (options.packages.length > 0 && !options.packages.includes(p.name)) {
             return;
         }
@@ -230,7 +230,7 @@ export function clean(options:
 
     options = _defaults(options, defaultOptions);
 
-    const cleanPackage = (p: IPackage, packages: IPackage[]) => {
+    const cleanPackage = (p: IPackage, packages: IPackage[], config: any) => {
         if (options.packages.length > 0 && !options.packages.includes(p.name)) {
             return;
         }
