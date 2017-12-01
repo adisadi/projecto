@@ -1,7 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
 
-
 export function exists(dir: string): Promise<boolean> {
     return new Promise<boolean>((resolve, reject) => {
         fs.exists(dir, (res) => {

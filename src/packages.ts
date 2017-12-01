@@ -72,7 +72,11 @@ function getRootConfig(rootPath: string): Promise<any> {
                 if (e) {
                     readPkg(rootPackage)
                         .then((pkg: any) => {
-                            resolve(pkg.projecto);
+                            if (pkg.projecto) {
+                                resolve(pkg.projecto);
+                            } else {
+                                resolve({});
+                            }
                         })
                         .catch(() => {
                             resolve(null);
