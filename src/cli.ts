@@ -1,14 +1,14 @@
-import * as colors from "colors/safe";
+import chalk from "chalk";
 import * as yargs from "yargs";
 
 import { clean, install, link, task, unlink } from "./commands";
 
 const writeDone = () => {
-    console.log(colors.bold(colors.green("Projecto --> done!")));
+    console.log(chalk.bold.blue("Projecto") + chalk.yellow(" --> ") + chalk.greenBright("done!"));
 };
 
 const writeError = (err) => {
-    console.error(colors.bold(colors.red("Projecto -->" + err)));
+    console.error(chalk.bold.blue("Projecto") + chalk.yellow(" --> ") + + chalk.red(err));
 };
 
 const argv = yargs.command({
@@ -43,7 +43,7 @@ const argv = yargs.command({
             .catch(writeError);
     },
 }).command({
-    aliases: ["t"],
+    aliases: ["t", "$0"],
     builder: (y) => {
         y.positional("targets", {
             default: [],

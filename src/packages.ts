@@ -64,66 +64,57 @@ function getPackages(rootPath: string, includeRoot: boolean, config: any): Promi
     });
 }
 
-function getRootConfig(rootPath: string): Promise<any> {
-    const rootPackage = path.join(path.resolve(rootPath), "package.json");
-    return new Promise<any>((resolve, reject) => {
-        exists(rootPackage)
-            .then((e) => {
-                if (e) {
-                    readPkg(rootPackage)
-                        .then((pkg: any) => {
-                            if (pkg.projecto) {
-                                resolve(pkg.projecto);
-                            } else {
-                                resolve({});
-                            }
-                        })
-                        .catch(() => {
-                            resolve(null);
-                        });
-                } else {
-                    resolve(null);
-                }
-            });
-    });
+async function getRootConfig(rootPath: string): Promise<any> {
+
+    try {
+        const rootPackage = path.join(path.resolve(rootPath), "package.json");
+        const rootPackageExists = await exists(rootPackage);
+        if (!rootPackageExists) { return {}; }
+
+        const pkg = await readPkg(rootPackage);
+
+        return pkg.projecto ? pkg.projecto : {};
+
+    } catch (err) {
+        return {};
+    }
 }
 
-export function executeOnPackage(
+export async function executeOnPackage(
     rootPath: string,
     includeRoot: boolean,
     fn: (p: IPackage, packages: IPackage[], config: any) => void,
 ): Promise<void> {
-    return getRootConfig(rootPath)
-        .then((config) => {
-            return getPackages(rootPath, includeRoot, config).then((packages) => {
 
-                const installedPackages: IPackage[] = [];
+    const config = await getRootConfig(rootPath);
+    const packages = await getPackages(rootPath, includeRoot, config);
 
-                const bootstrapFn = (p: IPackage) => {
-                    fn(p, packages, config);
-                    installedPackages.push(p);
-                };
+    const installedPackages: IPackage[] = [];
 
-                const pkgs = packages.filter((p) => p.dependencies.length === 0);
-                if (pkgs.length === 0) {
-                    throw new Error("Cyclic Deps!");
-                }
+    const bootstrapFn = (p: IPackage) => {
+        fn(p, packages, config);
+        installedPackages.push(p);
+    };
 
-                pkgs.forEach((p) => bootstrapFn(p));
+    const pkgs = packages.filter((p) => p.dependencies.length === 0);
+    if (pkgs.length === 0) {
+        throw new Error("Can't find a package with no local dependencies! Probably cyclic dependencies!");
+    }
 
-                while (installedPackages.length !== packages.length) {
-                    const pkgs2 = packages.filter((p) => p.dependencies.every((d) => {
-                        return installedPackages.some((ip) => ip.name === d.name);
-                    }) && !installedPackages.some((ip) => ip.name === p.name));
+    pkgs.forEach((p) => bootstrapFn(p));
 
-                    if (pkgs2.length === 0) {
-                        throw new Error("Cyclic Deps!");
-                    }
+    while (installedPackages.length !== packages.length) {
+        const pkgs2 = packages.filter((p) => p.dependencies.every((d) => {
+            return installedPackages.some((ip) => ip.name === d.name);
+        }) && !installedPackages.some((ip) => ip.name === p.name));
 
-                    pkgs2.forEach((p) => bootstrapFn(p));
-                }
+        if (pkgs2.length === 0) {
+            throw new Error("Can't find Packages with installed " +
+                JSON.stringify(installedPackages.map((p) => p.name)) + " dependencies! Probably cyclic dependencies!");
+        }
 
-                return;
-            });
-        });
+        pkgs2.forEach((p) => bootstrapFn(p));
+    }
+
+    return;
 }

@@ -1,5 +1,5 @@
+import chalk from "chalk";
 import * as child_process from "child_process";
-import * as colors from "colors/safe";
 import * as path from "path";
 import * as rimraf from "rimraf";
 import { executeOnPackage, IPackage } from "./packages";
@@ -36,7 +36,7 @@ export function install(options:
             return;
         }
 
-        _print(p.name + " --> installing");
+        _print(p.name , "installing");
         child_process.spawnSync("yarn", ["install", "--checkfiles"], { cwd: p.path, stdio: "inherit" });
 
         if (_hasDependencies(p, packages)) {
@@ -45,7 +45,7 @@ export function install(options:
                 const buildTarget = options.build instanceof Boolean ? "build" : options.build;
                 if (p.scripts[buildTarget] === undefined) { return; }
 
-                _print(p.name + " --> building");
+                _print(p.name , "building");
                 child_process.spawnSync("yarn", ["run", buildTarget], { cwd: p.path, stdio: "inherit" });
             }
         }
@@ -88,7 +88,7 @@ export function link(options:
                 return;
             }
 
-            _print(p.name + " --> linking");
+            _print(p.name , "linking");
             child_process.spawnSync(
                 "yarn",
                 ["link", "--silent"],
@@ -146,7 +146,7 @@ export function unlink(options:
                 );
             });
 
-            _print(p.name + " --> unlinking");
+            _print(p.name , "unlinking");
             child_process.spawnSync(
                 "yarn",
                 ["unlink", "--silent"],
@@ -191,7 +191,7 @@ export function task(options:
             return;
         }
 
-        _print(p.name + " --> execute task '" + target + "'");
+        _print(p.name , "execute task '" + target + "'");
         child_process.spawnSync("yarn", ["run", target], { cwd: p.path, stdio: "inherit" });
 
     };
@@ -241,7 +241,7 @@ export function clean(options:
 
         for (const r of options.directories) {
             const pathToDelete = path.join(p.path, r);
-            _print("rimraf --> '" + pathToDelete + "'");
+            _print("rimraf", "'" + pathToDelete + "'");
             rimraf(pathToDelete, (err) => {
                 if (err) {
                     throw err;
@@ -269,6 +269,6 @@ function _filterObject(obj) {
     return ret;
 }
 
-function _print(str: string) {
-    console.log(colors.bold(colors.blue(str)));
+function _print(str1: string, str2: string) {
+    console.log(chalk.bold.blueBright(str1) + chalk.yellow(" --> ") + chalk.greenBright(str2));
 }
