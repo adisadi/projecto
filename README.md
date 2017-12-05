@@ -6,19 +6,10 @@ yarn project managment utility
 
 ## About
 
-Splitting up large codebases into separate independently versioned packages
-is extremely useful for code sharing. However, making changes across many
-repositories is *messy* and difficult to track, and testing across repositories
-gets complicated really fast.
-
-To solve these (and many other) problems, some projects will organize their
-codebases into multi-package repositories (sometimes called [monorepos](https://github.com/babel/babel/blob/master/doc/design/monorepo.md)). Projects like [Babel](https://github.com/babel/babel/tree/master/packages), [React](https://github.com/facebook/react/tree/master/packages), [Angular](https://github.com/angular/angular/tree/master/modules),
-[Ember](https://github.com/emberjs/ember.js/tree/master/packages), [Meteor](https://github.com/meteor/meteor/tree/devel/packages), [Jest](https://github.com/facebook/jest/tree/master/packages), and many others develop all of their packages within a
-single repository.
-
 **Projecto is a tool that optimizes the workflow around managing multi-package
 repositories with yarn.**
 
+It's a Lerna light ;-)
 
 ### What does a Projecto repo look like?
 
@@ -52,4 +43,20 @@ Let's start by installing Projecto globally with [npm](https://www.npmjs.com/).
 
 ```sh
 $ npm install --global projecto
+```
+or
+```sh
+$ yarn global add projecto
+```
+
+## Help
+
+Just look at the cli help.
+
+```sh
+$ po --help
+```
+or
+```sh
+$ projecto --help
 ```
