@@ -36,8 +36,8 @@ export function install(options:
             return;
         }
 
-        _print(p.name , "installing");
-        child_process.spawnSync("yarn", ["install", "--checkfiles"], { cwd: p.path, stdio: "inherit" });
+        _print(p.name, "installing");
+        child_process.spawnSync("yarn", ["install", "--checkfiles"], { cwd: p.path, stdio: "inherit", shell: true });
 
         if (_hasDependencies(p, packages)) {
 
@@ -45,8 +45,8 @@ export function install(options:
                 const buildTarget = options.build instanceof Boolean ? "build" : options.build;
                 if (p.scripts[buildTarget] === undefined) { return; }
 
-                _print(p.name , "building");
-                child_process.spawnSync("yarn", ["run", buildTarget], { cwd: p.path, stdio: "inherit" });
+                _print(p.name, "building");
+                child_process.spawnSync("yarn", ["run", buildTarget], { cwd: p.path, stdio: "inherit", shell: true });
             }
         }
     };
@@ -88,15 +88,16 @@ export function link(options:
                 return;
             }
 
-            _print(p.name , "linking");
+            _print(p.name, "linking");
             child_process.spawnSync(
                 "yarn",
                 ["link", "--silent"],
-                { cwd: p.path, stdio: [process.stdin, process.stdout, "ignore"] },
+                { cwd: p.path, stdio: [process.stdin, process.stdout, "ignore"], shell: true },
             );
             const deps = packages.filter((e) => e.dependencies.some((d) => d.name === p.name));
             deps.forEach((d) => {
-                child_process.spawnSync("yarn", ["link", p.name, "--silent"], { cwd: d.path, stdio: "inherit" });
+                child_process.spawnSync(
+                    "yarn", ["link", p.name, "--silent"], { cwd: d.path, stdio: "inherit", shell: true });
             });
         }
     };
@@ -138,19 +139,20 @@ export function unlink(options:
                     "yarn",
                     ["unlink", p.name, "--silent"],
                     {
-                        cwd: d.path, stdio: [process.stdin, process.stdout, "ignore"],
+                        // tslint:disable-next-line:object-literal-sort-keys
+                        cwd: d.path, stdio: [process.stdin, process.stdout, "ignore"], shell: true,
                     });
                 child_process.spawnSync("yarn",
                     ["install", "--checkfiles"],
-                    { cwd: p.path, stdio: [process.stdin, "ignore", process.stderr] },
+                    { cwd: p.path, stdio: [process.stdin, "ignore", process.stderr], shell: true },
                 );
             });
 
-            _print(p.name , "unlinking");
+            _print(p.name, "unlinking");
             child_process.spawnSync(
                 "yarn",
                 ["unlink", "--silent"],
-                { cwd: p.path, stdio: [process.stdin, process.stdout, "ignore"] },
+                { cwd: p.path, stdio: [process.stdin, process.stdout, "ignore"], shell: true },
             );
         }
     };
@@ -191,8 +193,8 @@ export function task(options:
             return;
         }
 
-        _print(p.name , "execute task '" + target + "'");
-        child_process.spawnSync("yarn", ["run", target], { cwd: p.path, stdio: "inherit" });
+        _print(p.name, "execute task '" + target + "'");
+        child_process.spawnSync("yarn", ["run", target], { cwd: p.path, stdio: "inherit", shell: true });
 
     };
 
