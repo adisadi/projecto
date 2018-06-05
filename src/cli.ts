@@ -8,7 +8,7 @@ const writeDone = () => {
 };
 
 const writeError = (err) => {
-    console.error(chalk.bold.blue("Projecto") + chalk.yellow(" --> ") + + chalk.red(err));
+    console.error(chalk.bold.blue("Projecto") + chalk.yellow(" --> ") + chalk.red(err));
 };
 
 const argv = yargs.command({
