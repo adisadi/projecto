@@ -113,6 +113,11 @@ const argv = yargs.command({
             .catch(writeError);
     },
 }).options({
+    debug: {
+        describe: false,
+        hidden: true,
+        type: "boolean",
+    },
     exclude_packages: {
         alias: "e",
         array: true,
@@ -136,6 +141,7 @@ const argv = yargs.command({
         default: process.cwd(),
         describe: "Provide a path to the root",
     },
+
 })
     .demandCommand()
     .help()

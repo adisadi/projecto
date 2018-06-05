@@ -28,6 +28,10 @@ function getPackages(rootPath: string, includeRoot: boolean, config: any): Promi
     }).then((results: any) => {
         return Promise.all(
             results.map((element: string) => {
+                if (config.debug && config.debug === true) {
+                    console.log(element);
+                }
+
                 return readPkg(element).then((pkg: any) => {
 
                     if (!pkg.dependencies) {
