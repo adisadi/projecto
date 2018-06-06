@@ -39,15 +39,12 @@ export function install(options:
         _print(p.name, "installing");
         child_process.spawnSync("yarn", ["install", "--checkfiles"], { cwd: p.path, stdio: "inherit", shell: true });
 
-        if (_hasDependencies(p, packages)) {
+        if (options.build) {
+            const buildTarget = options.build === true ? "build" : options.build;
+            if (p.scripts[buildTarget] === undefined) { return; }
 
-            if (options.build) {
-                const buildTarget = options.build instanceof Boolean ? "build" : options.build;
-                if (p.scripts[buildTarget] === undefined) { return; }
-
-                _print(p.name, "building");
-                child_process.spawnSync("yarn", ["run", buildTarget], { cwd: p.path, stdio: "inherit", shell: true });
-            }
+            _print(p.name, "building");
+            child_process.spawnSync("yarn", ["run", buildTarget], { cwd: p.path, stdio: "inherit", shell: true });
         }
     };
 
