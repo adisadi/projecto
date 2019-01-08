@@ -209,6 +209,42 @@ export function task(options:
     });
 }
 
+export function execute(options:
+    {
+        packages: string[],
+        exclude_packages: string[],
+        include_root: boolean,
+        root: string,
+        cmds: string[],
+    }): Promise<void> {
+
+    const defaultOptions = {
+        cmds: [],
+        exclude_packages: [],
+        include_root: false,
+        packages: [],
+        root: process.cwd(),
+    };
+
+    options = _defaults(options, defaultOptions);
+
+    const execPackage = (p: IPackage, packages: IPackage[], config: any) => {
+        if (options.packages.length > 0 && !options.packages.includes(p.name)) {
+            return;
+        }
+
+        if (options.exclude_packages.length > 0 && options.exclude_packages.includes(p.name)) {
+            return;
+        }
+
+        _print(p.name, "execute 'yarn " + options.cmds.join(" ") + "'");
+        child_process.spawnSync("yarn", options.cmds, { cwd: p.path, stdio: "inherit", shell: true });
+
+    };
+
+    return executeOnPackage(options.root, options.include_root, execPackage);
+}
+
 export function clean(options:
     {
         root: string,

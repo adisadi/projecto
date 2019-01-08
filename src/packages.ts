@@ -20,7 +20,7 @@ function getPackages(rootPath: string, includeRoot: boolean, config: any): Promi
 
     return iterate(rootPath, (f, stat) => {
         if (stat.isDirectory()) {
-            return !f.match("node_modules|\.bin|\.git" + exclude);
+            return !f.match("node_modules|\\.bin|\\.git" + exclude);
         } else {
             if (!includeRoot && path.join(path.resolve(rootPath), "package.json") === f) { return false; }
             return f.match("package.json") != null;
